@@ -22,7 +22,7 @@ class WeatherApp(QMainWindow):
 
 
     def fetch_request(self):
-        api = "08627bde82bd1723e7e70b57c36b963d"
+        api = ""
         city_name = self.line_city.text()
         url = f"https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api}"
         ICON_MAP = {
