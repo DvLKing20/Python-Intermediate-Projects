@@ -13,7 +13,7 @@ It takes a city name, calls a weather API, and shows the temperature, weather ty
 A command-line downloader that can download many files at the same time using asyncio.  
 It also lets you cancel downloads while they are running and shows progress with a progress bar.
 
-# Downloader_manager 🚀
+# Downloader_manager(PyQt5) 🚀
 
 A simple async download manager built with **Python**, **PyQt5**, and **aiohttp**.
 
