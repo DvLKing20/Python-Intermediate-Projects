@@ -22,7 +22,7 @@ class WeatherApp(QMainWindow):
 
 
     def fetch_request(self):
-        api = "08627bde82bd1723e7e70b57c36b963d"
+        api = ""
         city_name = self.line_city.text()
         url = f"https://api.openweathermap.org/data/2.5/weather?q={city_name}&appid={api}"
         ICON_MAP = {
@@ -39,20 +39,37 @@ class WeatherApp(QMainWindow):
             "Dust": "🌪️",
         }
 
-
         try:
-              response = requests.get(url)
-              data = response.json()
-              result = data
-        except requests.ConnectionError as e:
-                return "Connection Error"
-        except requests.ConnectTimeout as e:
-                return "Response Error"
+            response = requests.get(url, timeout=5)
+            data = response.json()
+            result = data
+
+        except requests.exceptions.ConnectTimeout as e:
+            self.label_description.setText("Connection Timeout")
+            self.label_temp.setText("error")
+            print(e)
+
+        except requests.exceptions.ConnectionError as e:
+            self.label_description.setText("Connection Error")
+            self.label_temp.setText("error")
+            print(e)
+
+        except requests.exceptions.HTTPError as e:
+            self.label_description.setText("Server returned error")
+            self.label_temp.setText("error")
+            print(e)
+
         except Exception as e:
-                return "Unexpected Error"
+            self.label_description.setText("Exception Occurred")
+            self.label_temp.setText("error")
+            print(e)
 
         try:
-             if result['cod'] == 200:
+            cod = int(result['cod'])
+        except TypeError, ValueError:
+            cod = 0
+        try:
+             if cod == 200:
                    kelvin = result['main']['temp']
                    celcius = kelvin - 273.15
                    desc = result['weather'][0].get('main')
@@ -61,21 +78,21 @@ class WeatherApp(QMainWindow):
                    self.label_temp.setText(f"{celcius:.1f}°C")
                    self.label_cloud.setText(icon)
 
-             elif result['cod'] == '400':
+             elif cod == 400:
                  self.label_temp.setText(f"{result['cod']}")
                  self.label_description.setText(result['message'])
 
-             elif result['cod'] == '404':
+             elif cod == 404:
                  self.label_temp.setText(f"{result['cod']}")
                  self.label_description.setText(result['message'])
 
-             elif result['cod'] == '401':
+             elif cod == 401:
                  self.label_temp.setText(f"{result['cod']}")
                  self.label_description.setText(result['message'])
 
              else:
                  self.label_temp.setText("Error")
-                 self.label_description.setText("Unexpected Error")
+                 self.label_description.setText(result['message'])
 
 
         except Exception:
