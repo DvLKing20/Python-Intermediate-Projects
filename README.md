@@ -12,3 +12,26 @@ It takes a city name, calls a weather API, and shows the temperature, weather ty
 ### **📥 CLI Downloader (Async)**
 A command-line downloader that can download many files at the same time using asyncio.  
 It also lets you cancel downloads while they are running and shows progress with a progress bar.
+
+# Downloader_manager 🚀
+
+A simple async download manager built with **Python**, **PyQt5**, and **aiohttp**.
+
+- 📥 Add multiple HTTP/HTTPS URLs  
+- 📊 Each download gets its own progress bar  
+- 📝 File name + progress shown (e.g. `video.mp4: 1.23 / 10.00 MB`)  
+- 📂 Custom download folder (auto-created if it doesn’t exist)  
+- 🧵 GUI stays responsive using a separate thread + `asyncio`
+
+---
+
+## Requirements 🛠️
+
+- Python 3.10+
+- `PyQt5`
+- `aiohttp`
+
+Install:
+
+```bash
+pip install PyQt5 aiohttp
