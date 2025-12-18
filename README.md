@@ -5,7 +5,7 @@ Everything here helped me understand async code, GUIs, bots, file handling, and 
 
 ## What's inside
 
-### 🔹 PyQt5 Download Manager
+### 🔹 PyQt5 Projects
 A simple download manager built with PyQt5.  
 I used threads + async to learn how GUI apps handle background tasks without freezing.
 
