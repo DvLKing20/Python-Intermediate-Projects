@@ -1,114 +1,92 @@
-from PyQt6.QtGui import QIcon, QPainter,QStandardItemModel,QStandardItem,QAction
+from PyQt6.QtGui import QIcon, QPainter,QStandardItemModel
 
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout, QHBoxLayout
 , QLabel, QLineEdit, QStackedLayout, QGraphicsView,
-                             QGraphicsScene, QFileDialog,
-                             QStackedWidget, QButtonGroup, QTableView, QToolButton, QSizePolicy, QCheckBox,QGroupBox)
+                             QGraphicsScene, QStackedWidget,
+                             QButtonGroup, QTableView, QToolButton, QSizePolicy, QCheckBox,QGroupBox)
 
 from PyQt6.QtCore import Qt, QSizeF, QUrl
 from PyQt6.QtMultimedia import QMediaPlayer,QAudioOutput
 from PyQt6.QtMultimediaWidgets import QGraphicsVideoItem
 
 import sys
-
-
-from WorkerManager import ScanManager
+import WorkerManager
 
 
 class PowerManager(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.scope_wrapped = None
-        self.scope_box = None
-        self.browse_widget = None
-        self.vertical_widget = None
-        self.mode_layout = None
-        self.mode_widget = None
-        self.container = None
-        self.wrapped_panel = None
-        self.wrapper_panels = None
 
         self.player = QMediaPlayer()
         self.audio = QAudioOutput()
 
-        #preview table
+        #PREVIEW TABLE
         self.preview_table = QTableView()
-        self.preview_model = QStandardItemModel(0, 2)
+        self.preview_model = QStandardItemModel(0, 1)
 
-        #row buttons
+        #TOOL BUTTONS
         self.btn_scan = QToolButton()
         self.btn_rename = QToolButton()
         self.btn_move = QToolButton()
         self.btn_dirs = QToolButton()
         self.btn_files = QToolButton()
+        self.btn_name = QToolButton()
         self.mode_group = QButtonGroup()
 
-        #stackWidget
-        self.stacked_widget = QStackedWidget()
+        #WIDGETS
+        self.central_widget = None
+        self.screen_widget = None
+        self.label_widget = None
+        self.stacked_widget = None
+        self.browse_widget = None
+        self.mode_widget = None
+        self.container = None
+        self.wrapper_panels = None
+        self.scope_wrapped = None
 
         #Graphics Item
         self.scene = QGraphicsScene()
         self.view = QGraphicsView()
         self.video_item = QGraphicsVideoItem()
 
-        #labels
-        self.dirs_label = QLabel("Folder :")
-        self.files_label = QLabel("Files :")
-        self.subdirs_label = QLabel("Subdirs :")
+        #LABELS
+        self.dirs_label = QLabel("Folders : 0")
+        self.files_label = QLabel("Files : 0")
+        self.subdirs_label = QLabel("Subdirs : 0")
         self.extension_label = QLabel("Specific Extension: ?")
 
-        #lineedits
+        #LINE EDITS
         self.folder_path = QLineEdit()
         self.extension = QLineEdit()
 
-        #checkboxes
+        #CHECKBOXES
+        self.scope_box = None
         self.chk_files = QCheckBox("Files")
         self.chk_dirs = QCheckBox("Folders")
         self.chk_subdirs = QCheckBox("SubFolders")
+        self.chk_preview = QCheckBox("Preview Only")
         self.chk_hidden = QCheckBox("Include Hidden")
 
-        #buttons
+        #BUTTONS
         self.browse = QPushButton("📂")
         self.scan = QPushButton("SCAN")
         self.apply_rename_btn = QPushButton("Apply")
 
-        #screen widget
-        self.screen_widget = QWidget()
-        self.screen_layout = QVBoxLayout(self.screen_widget)
-
-        #central widget
-        self.central_widget = QWidget(self)
-
-
         #WorkerClasses
-        self.scanner = ScanManager(self)
-
+        self.scanner = WorkerManager.ScanManager(self)
 
         #UI
         self.InitUi()
 
-        #connections
-        self.player.setLoops(QMediaPlayer.Loops.Infinite)
-        self.browse.clicked.connect(self.browse_dirs)
-        self.scan.clicked.connect(lambda: self.scanner.scan(self.folder_path.text()))
 
-        #radio buttons
+        #TOOL BUTTON CONNECTIONS
         self.mode_group.idClicked.connect(self.stacked_widget.setCurrentIndex)
 
+        #CONNECTIONS
+        self.player.setLoops(QMediaPlayer.Loops.Infinite)
+        self.browse.clicked.connect(lambda: WorkerManager.browse_dirs(self))
+        self.scan.clicked.connect(lambda: self.scanner.scan(self.folder_path.text()))
 
-
-    def update_scanned_counts(self,dirs,files,subdirs):
-        self.dirs_label.setText(f"Folders : {dirs}")
-        self.files_label.setText(f"Files : {files}")
-        self.subdirs_label.setText(f"Subdirs : {subdirs}")
-
-
-    def browse_dirs(self):
-        folder = QFileDialog.getExistingDirectory(self, "Select Folder"
-                                                  ,"",QFileDialog.Option.ShowDirsOnly)
-        if folder:
-            self.folder_path.setText(folder)
-            self.folder_path.setReadOnly(False)
 
 
     def resizeEvent(self,event):
@@ -122,34 +100,20 @@ class PowerManager(QMainWindow):
          self.video_item.setSize(QSizeF(new_width,new_height))
 
 
-         #MODE AREA
-         self.mode_widget.setMaximumSize(int(new_width),int(new_height*0.090 ))
+         #mode buttons
+         self.mode_widget.setMaximumSize(new_width,int(new_height*0.090))
+
 
 
          #BROWSE AREA
-         self.browse_widget.setMaximumSize(int(new_width*0.4),int(new_height*0.088))
-         browse_width,browse_height = self.browse_widget.width(), self.browse_widget.height()
-         self.browse.setMaximumSize(int(browse_width*0.15),int(browse_height*0.7))
-         self.folder_path.setMaximumHeight(int(browse_height*0.7))
-
-
-         #PANELS
-         self.wrapper_panels.setMaximumWidth(int(new_width * 0.25))
-         self.wrapper_panels.setMaximumHeight(int(new_height * 0.35))
-         panel_width = self.wrapper_panels.width()
-         panel_height = self.wrapper_panels.height()
-         print(panel_width,panel_height)
-
-         #SCAN PANEL
+         self.browse_widget.setMaximumSize(int(new_width*0.35),int(new_height*0.093))
 
 
 
-
-         self.container.setMaximumSize(int(new_width * 0.25)
+         self.container.setMaximumSize(int(new_width * 0.28)
                                       ,new_height)
 
-         self.preview_table.setMaximumWidth(int(new_width * 0.74))
-         self.preview_table.setMaximumHeight(int(new_height * 0.75))
+
 
 
     def InitUi(self):
@@ -157,7 +121,8 @@ class PowerManager(QMainWindow):
        #WINDOW:
         self.setWindowTitle("Made By DvLKing20")
         self.setWindowIcon(QIcon("f.jpeg"))
-        self.resize(1000,600)
+        self.resize(1000,650)
+
 
        #TOP BUTTONS:
         self.btn_scan.setText("Scan")
@@ -183,13 +148,7 @@ class PowerManager(QMainWindow):
         mode_layout.addWidget(self.btn_dirs)
         mode_layout.addWidget(self.btn_files)
         mode_layout.addStretch()
-        self.mode_widget.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Preferred)
-        self.btn_scan.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.btn_rename.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.btn_move.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.btn_dirs.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.btn_files.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
+        self.mode_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         for btn in (
             self.btn_scan,
@@ -198,8 +157,8 @@ class PowerManager(QMainWindow):
             self.btn_dirs,
             self.btn_files,
         ):
+           btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
            btn.setCheckable(True)
-           btn.setFixedHeight(30)
            btn.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
            btn.setCursor(Qt.CursorShape.PointingHandCursor)
 
@@ -210,64 +169,70 @@ class PowerManager(QMainWindow):
 
         self.browse_widget = QWidget()
         browse_layout = QHBoxLayout(self.browse_widget)
+        browse_layout.setSpacing(5)
+        browse_layout.setContentsMargins(10, 8, 10, 10)
         browse_layout.addWidget(self.folder_path)
         browse_layout.addWidget(self.browse)
-        self.browse_widget.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
-        self.browse.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
-        self.folder_path.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
+        self.folder_path.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.browse.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
+        self.browse_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
 
        #SCAN PANEL:
         self.scan.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.extension.setPlaceholderText("Ignore if not...")
+        self.extension.setPlaceholderText("Choose a folder first...")
         self.chk_files.setChecked(True)
         self.chk_dirs.setChecked(True)
+        self.scan.setDisabled(True)
 
         scan_widget = QWidget()
         scan_layout = QHBoxLayout(scan_widget)
-        scan_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        scan_layout.setContentsMargins(6,0,0,0)
-        scan_layout.addWidget(self.extension,alignment=Qt.AlignmentFlag.AlignLeft)
-        scan_layout.addWidget(self.scan,alignment=Qt.AlignmentFlag.AlignRight)
+        scan_layout.setContentsMargins(10,10,10,10)
+        scan_layout.setSpacing(4)
+        scan_layout.addWidget(self.extension)
+        scan_layout.addWidget(self.scan)
 
-        label_widget = QWidget()
-        label_layout = QVBoxLayout(label_widget)
-        label_layout.setSpacing(5)
-        label_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.label_widget = QWidget()
+        label_layout = QVBoxLayout(self.label_widget)
+        label_layout.setSpacing(10)
         label_layout.addWidget(self.dirs_label)
         label_layout.addWidget(self.files_label)
         label_layout.addWidget(self.subdirs_label)
+        self.label_widget.setSizePolicy(QSizePolicy.Policy.Expanding,QSizePolicy.Policy.Expanding)
+        self.dirs_label.setSizePolicy(QSizePolicy.Policy.Expanding,QSizePolicy.Policy.Expanding)
+        self.files_label.setSizePolicy(QSizePolicy.Policy.Expanding,QSizePolicy.Policy.Expanding)
+        self.subdirs_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
         self.scope_box = QGroupBox("Scan scope")
         layout = QVBoxLayout(self.scope_box)
-        layout.setContentsMargins(0,0,0,0)
-        layout.setSpacing(0)
-        layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        layout.setContentsMargins(10,10,10,10)
+        layout.setSpacing(3)
+        layout.setAlignment(Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignTop)
         layout.addWidget(self.chk_files)
         layout.addWidget(self.chk_dirs)
         layout.addWidget(self.chk_subdirs)
+        layout.addWidget(self.chk_preview)
         layout.addWidget(self.chk_hidden)
         self.scope_box.setSizePolicy(
-        QSizePolicy.Policy.Preferred,
-        QSizePolicy.Policy.Preferred
-                                    )
+        QSizePolicy.Policy.Expanding,
+        QSizePolicy.Policy.Expanding)
 
         self.scope_wrapped = QWidget()
         scope_box_label_layout = QHBoxLayout(self.scope_wrapped)
-        scope_box_label_layout.setSpacing(0)
-        scope_box_label_layout.setContentsMargins(10,5,0,0)
-        scope_box_label_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        scope_box_label_layout.setSpacing(5)
+        scope_box_label_layout.setContentsMargins(10,10,10,15)
         scope_box_label_layout.addWidget(self.scope_box)
-        scope_box_label_layout.addWidget(label_widget,alignment=Qt.AlignmentFlag.AlignRight)
+        scope_box_label_layout.addWidget(self.label_widget)
         self.scope_wrapped.setSizePolicy(
-            QSizePolicy.Policy.Preferred,
-            QSizePolicy.Policy.Preferred )
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding )
 
         scan_panel = QWidget()
         scan_panel_layout = QVBoxLayout(scan_panel)
-        scan_panel_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        scan_panel_layout.addWidget(self.extension_label,alignment=Qt.AlignmentFlag.AlignLeft)
-        scan_panel_layout.addWidget(scan_widget,alignment=Qt.AlignmentFlag.AlignLeft)
+        scan_panel_layout.setContentsMargins(10,10,10,10)
+        scan_panel_layout.setSpacing(0)
+        scan_panel_layout.addWidget(self.extension_label)
+        scan_panel_layout.addWidget(scan_widget)
         scan_panel_layout.addWidget(self.scope_wrapped)
 
        #RENAME PANEL:
@@ -276,7 +241,6 @@ class PowerManager(QMainWindow):
         rename_panel_layout = QVBoxLayout(rename_panel)
         rename_panel_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         rename_panel_layout.addWidget(self.apply_rename_btn)
-
 
 
 
@@ -293,27 +257,26 @@ class PowerManager(QMainWindow):
 
 
 
-
-        #background_scene
+        #BACKGROUND SCENE
         self.view.setScene(self.scene)
         self.view.setRenderHint(QPainter.RenderHint.Antialiasing)
         self.view.setFrameShape(QGraphicsView.Shape.NoFrame)
         self.scene.setSceneRect(0,0,self.width(),self.height())
 
-        #adding video
+        #ADDING VIDEO
         self.video_item.setSize(QSizeF(self.width(), self.height()))
         self.video_item.setAspectRatioMode(Qt.AspectRatioMode.IgnoreAspectRatio)
         self.scene.addItem(self.video_item)
 
-        #player
+        #VIDEO PLAYER
         self.player.setVideoOutput(self.video_item)
         self.player.setAudioOutput(self.audio)
         self.audio.setVolume(0.0)
         self.player.setSource(QUrl.fromLocalFile("down.mp4"))
         self.player.play()
 
-
-        #stacked_widget
+        #STAKED WIDGETS
+        self.stacked_widget = QStackedWidget()
         self.stacked_widget.addWidget(scan_panel)
         self.stacked_widget.addWidget(rename_panel)
         self.stacked_widget.setCurrentIndex(0)
@@ -325,10 +288,6 @@ class PowerManager(QMainWindow):
         wrapper_layout.setContentsMargins(0,0,0,0)
         wrapper_layout.setSpacing(0)
         wrapper_layout.addWidget(self.stacked_widget)
-        self.wrapper_panels.setSizePolicy(
-        QSizePolicy.Policy.Preferred,
-        QSizePolicy.Policy.Preferred
-                          )
 
 
         self.container = QWidget()
@@ -341,20 +300,22 @@ class PowerManager(QMainWindow):
 
         wrapped_widgets = QWidget()
         wrapped_layout = QHBoxLayout(wrapped_widgets)
-        wrapped_layout.setContentsMargins(0,0,0,0)
-        wrapped_layout.setSpacing(0)
+        wrapped_layout.setContentsMargins(10,10,10,10)
+        wrapped_layout.setSpacing(5)
         wrapped_layout.addWidget(self.container)
+        wrapped_layout.addSpacing(20)
         wrapped_layout.addWidget(self.preview_table)
 
-
-        self.screen_layout.setContentsMargins(0,0,0,0)
-        self.screen_layout.setSpacing(20)
-        self.screen_layout.addWidget(self.mode_widget)
-        self.screen_layout.addWidget(self.browse_widget)
-        self.screen_layout.addWidget(wrapped_widgets)
+        self.screen_widget = QWidget()
+        screen_layout = QVBoxLayout(self.screen_widget)
+        screen_layout.setContentsMargins(0,0,0,0)
+        screen_layout.addWidget(self.mode_widget)
+        screen_layout.addWidget(self.browse_widget)
+        screen_layout.addWidget(wrapped_widgets)
 
 
         #stack
+        self.central_widget = QWidget(self)
         stack = QStackedLayout()
         stack.setStackingMode(QStackedLayout.StackingMode.StackAll)
         stack.addWidget(self.view)
@@ -364,23 +325,25 @@ class PowerManager(QMainWindow):
         self.setCentralWidget(self.central_widget)
 
 
+
         #object names
         self.screen_widget.setObjectName('screen_widget')
-        label_widget.setObjectName("label_widget")
+        self.label_widget.setObjectName("label_widget")
         self.browse_widget.setObjectName("path_widget")
         scan_panel.setObjectName("scan_panel")
-        self.folder_path.setObjectName("folder_path")
+        self.folder_path.setObjectName("path_input")
         self.mode_group.setObjectName("mode_group")
-
+        self.browse.setObjectName("browse-btn")
+        for label in self.label_widget.findChildren(QLabel):
+          label.setObjectName("label")
 
         self.stacked_widget.setAttribute(Qt.WidgetAttribute.WA_StyledBackground)
         self.preview_table.setStyleSheet("background: transparent;")
 
         self.setStyleSheet("""
-        
-        
+                
 QWidget#screen_widget {
-
+    
     background-color: rgba(30, 32, 36, 180);
     border: 1.5px solid #35414d;
     border-radius: 10px;
@@ -389,7 +352,7 @@ QWidget#screen_widget {
 
 
 QWidget#scan_panel {
-
+    
     background-color: rgba(22, 24, 28, 200);
     border: 3px solid #424c4f;
     border-radius: 14px;
@@ -398,85 +361,218 @@ QWidget#scan_panel {
 
 /* <--------Buttons----------> */
         
-QPushButton{
-    background-color: rgba(40, 44, 52, 200);
-    color: #ffffff;
-    border: 1px solid rgba(255,255,255,80);
+QPushButton {
+    
+    background-color: rgba(40, 44, 52, 210);
+    color: #e6e8ec;
+
+    border: 1.5px solid rgba(255, 255, 255, 70);
     border-radius: 10px;
-    padding: 8px 14px;
+    font-family: Comic Sans MS;
+    padding: 8px 16px;
+    font-size: 12px;
     font-weight: 600;
 }
 
+/* hover – brighter surface, sharper edge */
 QPushButton:hover {
-    background-color: rgba(60, 65, 75, 220);
+    background-color: rgba(55, 60, 70, 235);
+    border-color: rgba(255, 255, 255, 140);
 }
 
+/* pressed – darker, solid, confident */
 QPushButton:pressed {
-    background-color: rgba(80, 120, 200, 220);
+    background-color: rgba(30, 32, 36, 245);
+    border-color: rgba(255, 255, 255, 200);
+}
+
+/* keyboard focus – white glow (not cyan) */
+QPushButton:focus {
+    outline: none;
+    border: 2px solid rgba(255, 255, 255, 220);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 70),
+        0 0 6px rgba(255, 255, 255, 90);
+}
+
+/* checked / active state (soft grey highlight) */
+QPushButton:checked {
+    background-color: rgba(70, 75, 85, 240);
+    color: #ffffff;
+    border-color: rgba(200, 200, 200, 200);
+}
+
+/* disabled – obvious but not ugly */
+QPushButton:disabled {
+    background-color: rgba(38, 40, 44, 120);
+    color: rgba(200, 200, 200, 90);
+    border-color: rgba(255, 255, 255, 30);
+}
+
+/* disabled safety */
+QPushButton:disabled:hover,
+QPushButton:disabled:pressed {
+    background-color: rgba(38, 40, 44, 120);
+}
+
+
+QPushButton#browse_btn {
+    background-color: rgba(38, 42, 48, 220);
+    color: #e6e8ec;
+
+    border: 1.5px solid rgba(255, 255, 255, 60);
+    border-radius: 8px;
+
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* hover → slightly brighter surface + clearer edge */
+QPushButton#browse_btn:hover {
+    background-color: rgba(50, 55, 62, 235);
+    border-color: rgba(255, 255, 255, 120);
+}
+
+/* pressed → darker surface, crisp edge */
+QPushButton#browse_btn:pressed {
+    background-color: rgba(28, 30, 34, 240);
+    border-color: rgba(255, 255, 255, 180);
+}
+
+/* disabled → flat, obvious, not ugly */
+QPushButton#browse_btn:disabled {
+    background-color: rgba(32, 34, 38, 120);
+    color: rgba(200, 200, 200, 80);
+    border-color: rgba(255, 255, 255, 25);
+}
+
+/* disabled hover safety */
+QPushButton#browse_btn:disabled:hover,
+QPushButton#browse_btn:disabled:pressed {
+    background-color: rgba(32, 34, 38, 120);
 }
 
 /* <---------------- BUTTONS MODES -------------->*/
 
 QToolButton {
-    background-color: rgba(32, 35, 42, 140);
-    color: #d6d9e0;
-    border: 1px solid rgba(255,255,255,35);
-    padding: 8px 18px;
-    font-size: 13px;
-    font-weight: 500;
-    min-width: 110px;
+    font-family: Comic Sans MS;
+    background-color: rgba(30, 33, 40, 180);
+    color: #dfe6ff;
+
+    border: 1.5px solid rgba(255,255,255,45);
+    border-bottom: 3px solid rgba(255,255,255,25);
+
+    padding: 10px 22px;
+    font-size: 14px;
+    font-weight: 600;
+
+    min-width: 120px;
+
+    transition: all 150ms ease;
 }
 
-
-/* rounded ends only */
-QToolButton:first-child {
-    border-top-left-radius: 12px;
-    border-bottom-left-radius: 12px;
-}
-
-QToolButton:last-child {
-    border-top-right-radius: 12px;
-    border-bottom-right-radius: 12px;
-}
-
-/* subtle hover – not loud, not ugly */
 QToolButton:hover {
-    background-color: rgba(55, 60, 70, 180);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,60);
+    background-color: rgba(120, 35, 40, 220);
+    border-color: rgba(255, 120, 120, 220);
+
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,80),
+        0 0 14px rgba(255, 80, 80, 180);
 }
 
+QToolButton:pressed {
+    background-color: rgba(170, 40, 45, 240);
+    border-bottom: 2px solid rgba(120, 20, 25, 255);
 
-/* active mode – clean highlight */
+    box-shadow:
+        inset 0 4px 8px rgba(0,0,0,200),
+        0 0 10px rgba(255, 60, 60, 200);
+}
+
+/* CHECKED – red = active mode */
 QToolButton:checked {
-    background-color: rgba(120, 170, 255, 220);
+    background-color: rgba(180, 55, 55, 235);
     color: #ffffff;
-    border-color: rgba(180,210,255,255);
+
+    border-color: rgba(255, 200, 200, 220);
     font-weight: 600;
 }
 
-/* pressed feedback */
-QToolButton:pressed {
-    background-color: rgba(90, 130, 200, 220);
+QToolButton:disabled {
+    background-color: rgba(28, 30, 36, 120);
+    color: rgba(200,200,200,90);
+    border: 1px solid rgba(255,255,255,25);
 }
+
+QToolButton:first-child {
+    border-top-left-radius: 14px;
+    border-bottom-left-radius: 14px;
+}
+
+QToolButton:last-child {
+    border-top-right-radius: 14px;
+    border-bottom-right-radius: 14px;
+}
+
 
 /* <---------------- PATH INPUT -------------->*/
 
-QLineEdit#folder_path {
-    background-color: #1c1d20;
-    border: 1px solid #3a3d44;
-    font-size: 12px;
-    border-radius: 6px;
-    padding: 4px 8px;
-    color: #e6e6e6;
+QLineEdit#path_input {
+
+    font-family: Comic Sans MS;
+    background-color: rgba(24, 26, 30, 230);
+    color: #e6e8ec;
+
+    border: 1.5px solid rgba(255, 255, 255, 55);
+    border-radius: 8px;
+
+    padding: 6px 10px;
+    font-size: 13px;
 }
 
-QLineEdit#folder_path:focus {
-    border: 1.5px solid #6f85ff;
-    background-color: #202126;
+/* hover → clean edge, no glow yet */
+QLineEdit#path_input:hover {
+    border-color: rgba(255, 255, 255, 110);
 }
+
+/* focus → white glow (soft, professional) */
+QLineEdit#path_input:focus {
+    background-color: rgba(28, 30, 34, 240);
+
+    border: 2px solid rgba(255, 255, 255, 200);
+
+    /* fake glow via inset + outer highlight */
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 60),
+        0 0 6px rgba(255, 255, 255, 80);
+}
+
+/* placeholder text */
+QLineEdit#path_input::placeholder {
+    color: rgba(200, 200, 200, 120);
+    font-style: italic;
+}
+
+/* read-only → intentional, not dead */
+QLineEdit#path_input:read-only {
+    background-color: rgba(22, 24, 28, 200);
+    color: rgba(200, 200, 200, 160);
+    border-style: dashed;
+}
+
+/* disabled → visually clear */
+QLineEdit#path_input:disabled {
+    background-color: rgba(20, 22, 26, 160);
+    color: rgba(180, 180, 180, 120);
+    border-color: rgba(255, 255, 255, 25);
+}
+
+
 /* <---------------- LABELS -------------->*/
 
 QLabel {
+    font-family: Comic Sans MS;
     color: #cfd2da;
     font-size: 15px;
     padding: 1px 6px;
@@ -489,10 +585,19 @@ QLabel:hover {
     border: 1px solid #cfd2da;
 }
 
+QLabel#label{
+    color: #ffffff;
+    background-color: #2a2c31;
+    border-radius: 4px;
+    border: 0.8px solid #cfd2da;
+}
+
 /* <---------------------- TABLE VIEW --------------> */
 
 
 QTableView {
+
+    font-family: Comic Sans MS;
     background-color: rgba(20, 22, 26, 140);
     color: #e6e8ec;
     border: 1.5px solid rgba(255, 255, 255, 40);
@@ -527,6 +632,7 @@ QTableView::item:selected:hover {
 /* ================== GLOBAL LINEEDIT ================== */
 
 QLineEdit {
+    font-family: Comic Sans MS;
     background-color: rgba(28, 30, 34, 200);
     color: #e6e8ec;
 
