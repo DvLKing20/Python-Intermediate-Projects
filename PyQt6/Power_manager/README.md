@@ -1,9 +1,10 @@
 # PowerManager
 
-PowerManager is a multi-threaded desktop file management application built with Python and PyQt6.  
-It provides advanced tools for scanning, renaming, creating, and copying files and directories while keeping the UI fully responsive.
+PowerManager is a multi-threaded desktop file management application built with **Python** and **PyQt6**.
 
-The project is designed with a clean separation between UI, managers, jobs, and workers, making it scalable and safe for long-running filesystem operations.
+It provides advanced tools for scanning, renaming, creating, and copying files and directories while keeping the UI fully responsive, even during long-running filesystem operations.
+
+The project is designed with a clean separation between UI, managers, jobs, and workers, making it scalable, maintainable, and safe for concurrent tasks.
 
 ---
 
@@ -18,7 +19,7 @@ The project is designed with a clean separation between UI, managers, jobs, and 
 
 ### Rename
 - Prefix, suffix, sequence, and extension renaming
-- Case transformations (capitalize, uppercase, lowercase, title case)
+- Case transformations (uppercase, lowercase, title case, etc.)
 - Live preview mode
 - Apply / cancel support
 - Undo and redo functionality
@@ -44,34 +45,34 @@ The project is designed with a clean separation between UI, managers, jobs, and 
 
 ## Architecture
 
-The project follows a layered architecture:
+The project follows a layered architecture to keep responsibilities clearly separated:
 
-- UI Layer  
-  PyQt6 widgets responsible only for presentation.
+- **UI Layer**  
+  PyQt6 widgets responsible only for presentation and user interaction.
 
-- Manager Layer  
+- **Manager Layer**  
   Handles UI state, validation, and user actions.
 
-- Job Layer  
+- **Job Layer**  
   Manages threads and worker lifecycles.
 
-- Worker Layer  
-  Performs filesystem operations inside QObject instances running in QThread.
+- **Worker Layer**  
+  Performs filesystem operations inside `QObject` instances running in `QThread`.
 
-- State Layer  
+- **State Layer**  
   Explicit state machines control scan, rename, create, copy, and undo behavior.
 
-This structure keeps logic organized and prevents UI blocking.
+This structure prevents UI blocking and keeps logic organized.
 
 ---
 
 ## Threading Model
 
-- Uses Qt-recommended QObject + QThread
-- Workers moved to threads using moveToThread
+- Uses Qt-recommended `QObject + QThread` pattern
+- Workers moved to threads using `moveToThread`
 - Communication via Qt signals and slots
 - Cooperative cancellation using running flags
-- Automatic cleanup with deleteLater
+- Automatic cleanup with `deleteLater`
 
 The UI remains responsive during all operations.
 
@@ -79,16 +80,30 @@ The UI remains responsive during all operations.
 
 ## Tech Stack
 
-- Python 3
-- PyQt6
+- Python **3.14+**
+- PyQt6 **6.10.1**
+- Qt **6.10**
 - Qt signals & slots
-- QThread-based concurrency
-- pathlib, os, shutil
+- `QThread`-based concurrency
+- `pathlib`, `os`, `shutil`
 
 ---
 
-## How to Run
+## Requirements
 
-`bash
-pip install PyQt6
-python UI.py
+- Python **3.14 or newer**
+- pip
+- Windows OS (currently tested on Windows)
+
+---
+
+## Setup & Run
+
+Clone the repository and navigate into the project directory.
+
+Create and activate a virtual environment:
+
+**Windows**
+```bash
+python -m venv .venv
+.venv\Scripts\activate
