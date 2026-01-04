@@ -24,8 +24,9 @@ Each folder represents something new I learned — async, GUIs, bots, or game lo
 
 ## Requirements
 Different projects use different libraries, but overall this repo uses:
-- Python 3  
-- PyQt5  
+- Python 
+- PyQt5 
+- PyQt6
 - python-telegram-bot  
 - asyncio  
 - Pygame  
